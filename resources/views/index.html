@@ -1,0 +1,207 @@
+<html>
+<head>
+
+    <!-- Load the jQuery JS library -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+
+    <!-- Custom JS script -->
+    <script type="text/javascript">
+        $(document).ready(function () {
+
+            /**
+             * A dummy translation function that can be used at a later point, if needed
+             */
+            function translate($data) {
+                return $data;
+            }
+
+            /**
+             * A function that takes a products array and renders it's html
+             *
+             * The products array must be in the form of
+             * [{
+            *     "title": "Product 1 title",
+            *     "description": "Product 1 desc",
+            *     "price": 1
+            * },{
+            *     "title": "Product 2 title",
+            *     "description": "Product 2 desc",
+            *     "price": 2
+            * }]
+             */
+
+//            var products = [];
+//            function loadDoc() {
+//                var xmlhttp = new XMLHttpRequest();
+//                xmlhttp.onreadystatechange = function() {
+//                    if (this.readyState == 4 && this.status == 200) { //===?
+//                        products = JSON.parse(this.responseText);
+//                    }
+//                };
+//                xmlhttp.open("GET", "ProductsController.php", true); // what php file should we use????
+//                xmlhttp.send();
+//            }
+
+            function renderList(products) {
+//                html = [
+//                    '<tr>',
+//                    '<th>Title</th>',
+//                    '<th>Description</th>',
+//                    '<th>Price</th>',
+//                    '</tr>'
+//                ].join('');
+
+                $.each(products, function (key, product) {
+                    html += [
+                        '<div class="product">',
+                            '<div class="productDetails">',
+                                '<div class="productTitle">' + product.title + '</div>',
+                                '<div class="productDescription">' + product.description + '</div>',
+                                '<div class="productPrice">' + product.price + '</div>',
+                                '<div><img src="/image?image=' + product.image + '</div>',
+//                        what if edit or delete action????????????
+                                '<a href="?id=' +  product.id  + '" class="add">translate("Add")</a>',
+                            '</div>',
+                        '</div>'
+                    ].join('');
+                });
+
+                return html;
+            }
+
+            /**
+             * URL hash change handler
+             */
+            window.onhashchange = function () {
+                // First hide all the pages
+                $('.page').hide();
+
+                switch(window.location.hash) {
+                    case '#cart':
+                        // Show the cart page
+                        $('.cart').show();
+                        // Load the cart products from the server
+                        $.ajax('/cart', {
+                            dataType: 'json',
+                            success: function (response) {
+                                // Render the products in the cart list
+                                $('.cart .list').html(renderList(response));
+                            }
+                        });
+                        break;
+
+                    case '#products':
+                        // Show the cart page
+                        $('.products').show();
+                        // Load the cart products from the server
+                        $.ajax('/products', {
+                            dataType: 'json',
+                            success: function (response) {
+                                // Render the products in the cart list
+                                $('.products .list').html(renderList(response));
+                            }
+                        });
+                        break;
+
+//                        should we use id???????????
+                    case '#product':
+                        // Show the cart page
+                        $('.product').show();
+                        // Load the cart products from the server
+                        $.ajax('/product', {
+                            dataType: 'json',
+                            success: function (response) {
+                                // Render the products in the cart list
+                                $('.product .list').html(renderList(response));
+                            }
+                        });
+                        break;
+//                        What about login??????
+                    default:
+                        // If all else fails, always default to index
+                        // Show the index page
+                        $('.index').show();
+                        // Load the index products from the server
+                        $.ajax('/', {
+                            dataType: 'json',
+                            success: function (response) {
+                                // Render the products in the index list
+                                $('.index .list').html(renderList(response));
+                            }
+                        });
+                        break;
+                }
+            }
+
+            window.onhashchange();
+        });
+    </script>
+</head>
+<body>
+<!-- The index page -->
+<div class="page index" id="index">
+    <!-- The index element where the products list is rendered -->
+    <!--<table class="list"></table>-->
+
+    <!-- A link to go to the cart by changing the hash -->
+    <a href="#cart" class="button">Go to cart</a>
+</div>
+
+<!-- The cart page -->
+<div class="page cart" id="cart">
+    <!-- The cart element where the products list is rendered -->
+    <table class="list"></table>
+
+    <form method="post">
+        <input type="text" name="name" placeholder="translate('Name')">
+        <!--<span><?= $nameErr ?></span><br />-->
+        <input type="text" name="contactDetails" placeholder="translate('Contact detailes')">
+        <!--<span><?= $contactDetailsErr ?></span><br />-->
+        <input type="text" name="comments" placeholder="translate('Comments')"><br />
+        <input type="submit" name="checkout" value="Checkout">
+        <!--<span><?= $succes ?></span><br />-->
+        <!--<span><?= $sendErr ?></span><br />-->
+    </form>
+
+    <!-- A link to go to the index by changing the hash -->
+    <a href="#" class="button">Go to index</a>
+</div>
+
+<div class="page products" id="products">
+    <!-- The index element where the products list is rendered -->
+    <table class="list"></table>
+
+    <!-- A link to go to the cart by changing the hash -->
+    <a href="#product" class="button">Add</a>
+    <a href="#logout" class="button">Logout</a>
+</div>
+
+<div class="page product" id="product">
+    <!-- The index element where the products list is rendered -->
+    <table class="list"></table>
+
+    <form method="post" enctype="multipart/form-data">
+        <input type="text" name="title" required="required" placeholder="translate('Title')"><br />
+        <input type="text" name="description" required="required" placeholder="translate('Description')"><br />
+        <input type="file" name="file" id="file"><br /><br />
+        <a href="#products">translate("Products")</a>
+        <input type="submit" name="save" value="translate('Save')">
+    </form>
+
+    <!-- A link to go to the cart by changing the hash -->
+    <a href="#products" class="button">Products</a>
+</div>
+
+<div class="page login" id="login">
+    <form method="POST">
+        <input type="text" name="username" autocomplete="off">
+        <input type="password" name="password" autocomplete="off"><br />
+        <input type="submit" name="submit" value="translate('Login')">
+    </form>
+</div>
+
+<!--where to store this file and how can i acces it from the browser?-->
+
+</body>
+</html>
+
