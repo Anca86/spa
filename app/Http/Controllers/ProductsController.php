@@ -53,7 +53,6 @@ class ProductsController extends Controller
     public function cart(Request $request)
     {
         if (($id = $request->input('id')) && in_array($id, session('cart', []))) {
-//            dd($id);
             $cart = session('cart');
             unset($cart[array_search($id, $cart)]);
             session(['cart' => $cart]);
@@ -77,16 +76,26 @@ class ProductsController extends Controller
         return view('products.product');
     }
 
-    public function show(Product $product)
+    public function show(Request $request)
     {
         $products = Product::all();
-        return view('products.products', compact('products'));
+        if ($request->ajax()) {
+            return $products;
+        } else {
+            return view('products.products', compact("products"));
+        }
     }
 
-    public function edit(Request $request, $id)
+    public function edit(Request $request)
     {
+        $id = $request->input('id');
         $product = Product::find($id);
-        return view('products.product', compact('product'));
+
+        if ($request->ajax()) {
+            return $product;
+        } else {
+            return view('products.product', compact('product'));
+        }
     }
 
     public function save(Request $request)
@@ -141,11 +150,17 @@ class ProductsController extends Controller
     }
 
 
-    public function destroy($id)
+    public function destroy(Request $request)
     {
+        $id = $request->input('id');
         $product = Product::find($id);
         $product->delete();
-        return view('products.products', compact('products'));
+//        return view('products.products', compact('products'));
+        if ($request->ajax()) {
+            return $products;
+        } else {
+            return view('products.products', compact('products'));
+        }
     }
 
     public function sendOrder(Request $request)
@@ -215,11 +230,7 @@ class ProductsController extends Controller
             }
         }
 
-        if ($request->ajax()) {
-            return $products;
-        } else {
-            return view('products.cart', compact('products', 'nameErr', 'contactDetailsErr', 'succes', 'sendErr'));
-        }
+        return view('products.cart', compact('products', 'nameErr', 'contactDetailsErr', 'succes', 'sendErr'));
 
     }
 
