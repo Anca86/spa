@@ -14,12 +14,10 @@ class LoginController extends Controller
     public function login(Request $request)
     {
         $loginMsg = "";
-        $inputUser =  request('username');
-        $inputPass =  request('password');
 
-        $inputUser = Helpers::clean_user_input($inputUser);
-        $inputPass = Helpers::clean_user_input($inputPass);
-        if(isset($inputUser, $inputPass)) {
+        if($request->has('username') && $request->has('password')) {
+            $inputUser = Helpers::clean_user_input(request('username'));
+            $inputPass = Helpers::clean_user_input(request('password'));
             if($inputUser == Config::get('constants.admin_name') && $inputPass == Config::get('constants.admin_password')) {
                 $request->session()->put('admin', $inputUser);
                 if ($request->ajax()) {
@@ -41,7 +39,29 @@ class LoginController extends Controller
     public function logout(Request $request)
     {
         Session::flush();
-        return Redirect::to('login');
+
+        if($request->ajax()) {
+            return ['logout' => true];
+        } else {
+            return Redirect::to('login');
+        }
+    }
+
+    public function isSession(Request $request)
+    {
+        if (session('admin')) {
+            if($request->ajax()) {
+                return session('admin');
+            } else {
+                return redirect()->route('products');
+            }
+        } else {
+            if($request->ajax()) {
+                return ['success' => false, 'message' => 'Error'];
+            } else {
+                return view('products.login', compact('loginMsg'));
+            }
+        }
     }
 
 }

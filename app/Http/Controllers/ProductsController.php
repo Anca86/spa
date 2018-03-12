@@ -86,9 +86,8 @@ class ProductsController extends Controller
         }
     }
 
-    public function edit(Request $request)
+    public function edit(Request $request, $id)
     {
-        $id = $request->input('id');
         $product = Product::find($id);
 
         if ($request->ajax()) {
@@ -100,7 +99,7 @@ class ProductsController extends Controller
 
     public function save(Request $request)
     {
-        $id = $request->input('id');
+        $id = request('id');
         $title = request('title');
         $description = request('description');
         $price = request('price');
@@ -117,14 +116,20 @@ class ProductsController extends Controller
                 'price' => 'required',
             ]);
 
+            $product->title  = $title;
+            $product->description  = $description;
+            $product->price  = $price;
+
             if (is_uploaded_file($_FILES["file"]["tmp_name"])) {
                 if (getimagesize($_FILES["file"]["tmp_name"])) {
                     $product->image = request()->file('file')->hashName();
                     Storage::disk('local')->put('public/images', $image);
                 }
             }
-        } else {
-            $product = new Product();
+
+            $product->save();
+        }
+        else {
             $this->validate(request(), [
                 'title' => 'required',
                 'description' => 'required',
@@ -132,7 +137,7 @@ class ProductsController extends Controller
                 'file' => 'required'
             ]);
 
-            Product::create([
+            $product = Product::create([
                 'title' => $title,
                 'description' => $description,
                 'price' => $price,
@@ -141,12 +146,20 @@ class ProductsController extends Controller
 
 
             Storage::disk('local')->put('public/images', $image);
-            return view('products.product', compact('product'));
+            if ($request->ajax()) {
+                return $product;
+            } else {
+                return view('products.product', compact('product'));
+            }
         }
 
         $product->save();
 
-        return view('products.product', compact('product'));
+        if ($request->ajax()) {
+            return $product;
+        } else {
+            return view('products.product', compact('product'));
+        }
     }
 
 
@@ -155,9 +168,9 @@ class ProductsController extends Controller
         $id = $request->input('id');
         $product = Product::find($id);
         $product->delete();
-//        return view('products.products', compact('products'));
+
         if ($request->ajax()) {
-            return $products;
+            return $product;
         } else {
             return view('products.products', compact('products'));
         }
@@ -223,14 +236,26 @@ class ProductsController extends Controller
 
             if (!$nameErr && !$contactDetailsErr) {
                 if (mail(Config::get('constants.email'), $subject, $message, $headers)) {
-                    $succes = __('messages.succes');
+                    if ($request->ajax()) {
+                        return ['success' => true];
+                    } else {
+                        $succes = __('messages.succes');
+                    }
                 } else {
-                    $sendErr = __('messages.sendErr');
+                    if ($request->ajax()) {
+                        return ['success' => false, 'message' =>  __('messages.sendErr')];
+                    } else {
+                        $sendErr = __('messages.sendErr');
+                    }
                 }
             }
         }
 
-        return view('products.cart', compact('products', 'nameErr', 'contactDetailsErr', 'succes', 'sendErr'));
+        if ($request->ajax()) {
+            return $products;
+        } else {
+            return view('products.cart', compact('products', 'nameErr', 'contactDetailsErr', 'succes', 'sendErr'));
+        }
 
     }
 

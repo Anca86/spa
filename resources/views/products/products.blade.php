@@ -9,6 +9,7 @@
 @foreach($products as $product)
     <div class="product">
         <div class="productDetails">
+            <input type="hidden" name="id" value="{{ $product->id}}" >
             <div class="productTitle">{{ $product->title }}</div>
             <div class="productDescription">{{ $product->description }}</div>
             <div class="productPrice">$ {{ $product->price }}</div>

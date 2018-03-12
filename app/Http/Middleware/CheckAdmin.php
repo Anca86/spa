@@ -13,6 +13,10 @@ class CheckAdmin
         '/logout',
         '/cart',
         '/spa',
+        '/spa#',
+        '/spa#cart',
+        '/spa#login',
+        '/spa#logout',
     ];
 
     /**
